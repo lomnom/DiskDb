@@ -26,9 +26,10 @@ class StoreSpec:
 
 	def store(self,data,file,force=False):
 		header=file.read(len(self.header))
-		if not force and header != self.header:
-			raise NoHeaderWarning
+		if (not force) and header != self.header:
+			raise self.NoHeaderWarning
 
+		file.seek(0)
 		file.write(self.header)
 		file.write(self.encode(data)+b"\0\0")
 
@@ -68,8 +69,8 @@ class Storable:
 diskDb=StoreSpec(b"DiskDb, another shitty database format!")
 
 # bytes <-> int
-def iTb(number):
-	return number.to_bytes(4,"big")
+def iTb(number,size=8):
+	return number.to_bytes(size,"big")
 
 def bTi(data):
 	return int.from_bytes(data,"big")
@@ -84,7 +85,7 @@ def encodeInt(self,number):
 
 @storeInt.decoder
 def decodeInt(self,file):
-	return bTi(file.read(4))
+	return bTi(file.read(8))
 
 # Strings
 storeStr=Storable(str,b's')
@@ -98,7 +99,7 @@ def encodeStr(self,text):
 
 @storeStr.decoder
 def decodeStr(self,file):
-	length=bTi(file.read(4))
+	length=bTi(file.read(8))
 	strData=str(file.read(length),encoding="UTF8")
 	return strData
 
@@ -140,7 +141,7 @@ def encodeList(self,data):
 
 @storeList.decoder
 def decodeList(self,file):
-	length=bTi(file.read(4))
+	length=bTi(file.read(8))
 	result=[]
 	for item in range(length):
 		result+=[self.spec.decode(file)]
@@ -160,7 +161,7 @@ def encodeDict(self,data):
 
 @storeDict.decoder
 def decodeDict(self,file):
-	length=bTi(file.read(4))
+	length=bTi(file.read(8))
 	result={}
 	for item in range(length):
 		key=self.spec.decode(file)
@@ -179,5 +180,5 @@ def encodeBytes(self,data):
 
 @storeBytes.decoder
 def decodeBytes(self,file):
-	length=bTi(file.read(4))
+	length=bTi(file.read(8))
 	return file.read(length)

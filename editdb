@@ -1,0 +1,8 @@
+#!/bin/bash
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+touch .out.yaml
+chmod 700 .out.yaml
+python3 "$SCRIPT_DIR"/readdb.py $1 .out.yaml 
+nano .out.yaml
+python3 "$SCRIPT_DIR"/writedb.py $2 $1 .out.yaml
+rm .out.yaml
