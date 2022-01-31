@@ -1,15 +1,9 @@
-# headers are \0<type>
-
-#structure is <header|(\0type header|type data)+>
+# Structure of database is <signature><<null><1 byte object header><object data>>+
 
 class StoreSpec:
 	class NoHeaderError(Exception):
 		def __str__(self):
 			return "Header not found in file! It may not be a DiskDb."
-
-	class NoHeaderWarning(Exception):
-		def __str__(self):
-			return "Header not found in file! Run the call with force=True to confirm!"
 
 	def __init__(self,header):
 		assert(type(header)==bytes)
@@ -18,32 +12,29 @@ class StoreSpec:
 		self.headers={}
 		self.types={}
 
-	def addStorable(self,storable):
+	def addStorable(self,storable): # Register another encoder
 		storable.spec=self
-		self.storables+=[storable]
+		assert(storable.header not in self.headers)
 		self.headers[storable.header]=storable
+		self.storables+=[storable]
 		self.types[storable.stored]=storable
 
-	def store(self,data,file,force=False):
-		header=file.read(len(self.header))
-		if (not force) and header != self.header:
-			raise self.NoHeaderWarning
-
+	def store(self,data,file): #Store object to file objecy
 		file.seek(0)
 		file.write(self.header)
 		file.write(self.encode(data)+b"\0\0")
 
-	def encode(self,data):
+	def encode(self,data): #Encode object to bytes
 		return self.types[type(data)].encode(data)
 
-	def read(self,file):
+	def read(self,file): #Decode file object
 		header=file.read(len(self.header))
 		if header != self.header:
 			raise self.NoHeaderError
 
 		return self.decode(file)
 
-	def decode(self,file):
+	def decode(self,file): #Decode file object that does not contain header
 		header=file.read(2)
 		return self.headers[header].decode(file)
 
@@ -182,3 +173,18 @@ def encodeBytes(self,data):
 def decodeBytes(self,file):
 	length=bTi(file.read(8))
 	return file.read(length)
+
+# Floats lol
+storeFloats=Storable(float,b'f')
+diskDb.addStorable(storeFloats)
+
+@storeFloats.encoder
+def encodeFloats(self,data):
+	encodedData=bytes(str(data).encode("ascii"))
+	header=self.header+iTb(len(encodedData))
+	return header+encodedData
+
+@storeFloats.decoder
+def decodeFloats(self,file):
+	length=bTi(file.read(8))
+	return float(str(file.read(length),encoding="ascii"))

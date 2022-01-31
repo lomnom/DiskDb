@@ -11,7 +11,7 @@ from os.path import exists
 
 def usage(*args): 
 	print("Usage: writedb [-f] outfile infile")
-	print("Reads a yaml from [infile] or stdin, and writes to outfile")
+	print("Reads yaml from [infile] or stdin, and writes to outfile")
 	print("Add -f to overwrite an existing non-diskdb file")
 	if args: exit(args[0])
 	else: exit(0)
@@ -37,7 +37,7 @@ if (not force) and exists(args[0]) :
 		print(f"File `{args[0]}` is not a diskdb! Use -f to overwrite file!")
 		usage(2)
 
-outfile=open(args[0],"w+b")
+outfile=open(args[0],"wb")
 try:
 	infile=open(args[1],"r")
 except FileNotFoundError:
@@ -45,7 +45,7 @@ except FileNotFoundError:
 	usage(2)
 
 try:
-	diskDb.store(safe_load(infile.read()),outfile,force=True)
+	diskDb.store(safe_load(infile.read()),outfile)
 except yaml.scanner.ScannerError:
 	print(f"File `{args[1]}` contains invalid yaml!")
 	usage(1)
