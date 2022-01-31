@@ -1,4 +1,5 @@
-# Structure of database is <signature><<null><1 byte object header><object data>>+
+# Structure of database is 
+#<signature (StoreSpec.header)> < <null byte> <1-byte object header> <object data> >+ <2 null bytes>
 
 class StoreSpec:
 	class NoHeaderError(Exception):
