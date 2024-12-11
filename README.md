@@ -38,7 +38,7 @@ class Human:
 	def __str__(self): #Print the human
 		return f"{self.name}, {self.sex}{self.age}"
 
-storeHumans=Storable(Human,b'h')
+storeHumans=Storable(Human,b'h') #type, header byte
 diskDb.addStorable(storeHumans) # Register the specification
 
 #iTb is int to bytes
